@@ -1,7 +1,6 @@
 <?php
-function addOrGetLocation($dbcon, $cid,$name,$street_address,$city,$state,$zip,$country,$address_type,$non_us_street_address,$lat,$lng,$date_created) {
-  $stmt = $dbcon->prepare('INSERT INTO location (cid, name, street_address, city, state, zip, country, address_type, non_us_street_address, lat, lng, date_created)'
-    . ' VALUES(?,?,?,?,?,?,?,?,?,?,?,?)');
+function addOrGetLocation($dbcon, $queries, $cid,$name,$street_address,$city,$state,$zip,$country,$address_type,$non_us_street_address,$lat,$lng,$date_created) {
+  $stmt = $dbcon->prepare($queries['insert-location!']);
   try {
     $stmt->execute([$cid,$name,$street_address,$city,$state,substr($zip,0,5),$country,$address_type,$non_us_street_address,$lat,$lng,$date_created]);
   } catch (PDOEXCEPTION $e) {
@@ -10,7 +9,7 @@ function addOrGetLocation($dbcon, $cid,$name,$street_address,$city,$state,$zip,$
       echo $e . "\n\n";
     }
   }
-  $stmt = $dbcon->prepare("SELECT * FROM location WHERE cid = ?");
+  $stmt = $dbcon->prepare($queries['get-location-by-cid']);
   $stmt->execute([$cid]);
   $pgsqlLocation = $stmt->fetchAll();
   if (count($pgsqlLocation) < 1) {
@@ -21,20 +20,23 @@ function addOrGetLocation($dbcon, $cid,$name,$street_address,$city,$state,$zip,$
   }
 }
 
-function doOrders($mysql, $pgsql) {
-  $stmt = $pgsql->query("SELECT id FROM customer WHERE name = 'Carmax';");
+function doOrders($mysql, $pgsql, $queries) {
+  $stmt = $pgsql->query($queries['get-carmax-id']);
   $carmax_id = $stmt->fetchAll()[0]['id'];
 
-  $stmt = $mysql->query('SELECT * FROM `order`;');
+  $stmt = $mysql->query($queries['get-orders']);
   $orders = $stmt->fetchAll();
   $missing_po = 1;
   foreach ($orders as $order) {
     $mysql_order_id = $order['id'];
-    $stmt = $mysql->query('SELECT * FROM vehicle where order_id = ' . $mysql_order_id);
+    $stmt = $mysql->prepare($queries['get-vehicles-by-order-id']);
+    $stmt->execute([$mysql_order_id]);
     $vehicles = $stmt->fetchAll();
-    $stmt = $mysql->query('SELECT * FROM location where id = ' . $order['pickup_location_id'] . ' limit 1;');
+    $stmt = $mysql->prepare($queries['get-location-by-id']);
+    $stmt->execute([$order['pickup_location_id']]);
     $pickup_location = $stmt->fetchAll()[0];
-    $stmt = $mysql->query('SELECT * FROM location where id = ' . $order['delivery_location_id'] . ' limit 1;');
+    $stmt = $mysql->prepare($queries['get-location-by-id']);
+    $stmt->execute([$order['delivery_location_id']]);
     $dropoff_location = $stmt->fetchAll()[0];
 
     if (count($vehicles) < 1) continue; // Skip orders with no vehicles
@@ -49,6 +51,7 @@ function doOrders($mysql, $pgsql) {
 
     $pickup_location_id = addOrGetLocation(
       $pgsql,
+      $queries,
       $pickup_location_cid,
       $pickup_location['name'],
       $pickup_location['street_address'],
@@ -64,6 +67,7 @@ function doOrders($mysql, $pgsql) {
 
     $dropoff_location_id = addOrGetLocation(
       $pgsql,
+      $queries,
       $dropoff_location_cid,
       $dropoff_location['name'],
       $dropoff_location['street_address'],
@@ -77,7 +81,7 @@ function doOrders($mysql, $pgsql) {
       $dropoff_location['lng'],
       $order['date_created']);
 
-    $stmt = $pgsql->prepare('INSERT INTO "order" (pickup_location_id, dropoff_location_id, customer_id, fuel_surcharge_amt, fuel_surcharge_percent, price_per_load, price_per_unit, additional_charge, additional_charge_desc, important, cod, cop, move_type, eta, date_created, date_deactivated) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);');
+    $stmt = $pgsql->prepare($queries['add-order!']);
     try {
       $stmt->execute([
         $pickup_location_id,
@@ -118,7 +122,7 @@ function doOrders($mysql, $pgsql) {
       if (is_null($vehicle['model']))
         $vehicle['model'] = "";
 
-      $stmt = $pgsql->prepare('INSERT INTO "vehicle" (order_id, year, make, model, vin, type, classification, po_number, move_id, curb_weight, doors, move_reason, important, promise_date, date_created, date_cancelled) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);');
+      $stmt = $pgsql->prepare($queries['add-vehicle!']);
       try {
         $stmt->execute([
           $order_id,

@@ -20,3 +20,14 @@ function clearDestDB($pgsql) {
   $pgsql->query('DELETE FROM "location" WHERE id > 0');
   $pgsql->query('DELETE FROM "note"     WHERE id > 0');
 }
+
+function parseQueries($fn) {
+  $str = file_get_contents($fn);
+  $rgx = '/--name:\s*(.*?)\s*\n([\s\S]*?)(?:\n\n|\Z)/m';
+  preg_match_all($rgx, $str, $matches, PREG_SET_ORDER);
+  $queries = [];
+  foreach ($matches as $match) {
+    $queries[$match[1]] = $match[2];
+  }
+  return $queries;
+}
