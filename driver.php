@@ -1,11 +1,17 @@
 <?php
 
+function to_date($d) {
+  if (is_null($d) || $d === '') {
+    return null;
+  }
+  return date("c", strtotime($d));
+}
+
 function doDrivers($mysql, $pgsql, $queries) {
   $stmt = $mysql->prepare($queries['get-drivers']);
   $stmt->execute();
   $drivers = $stmt->fetchAll();
   foreach ($drivers as $driver) {
-    print_r($driver);
     $stmt = $pgsql->prepare($queries['add-driver!']);
     $stmt->execute([
       $driver['driver_id'],
@@ -17,16 +23,16 @@ function doDrivers($mysql, $pgsql, $queries) {
       $driver['fax'],
       $driver['email'],
       $driver['type'],
-      $driver['is_cd'],
-      $driver['active'],
-      0,
+      (int)($driver['is_cd'] == 1),
+      (int)($driver['active'] == 1),
+      (int)($driver['message'] == 1),
       $driver['notes'],
       $driver['why_dont_use'],
-      $driver['start_date'],
+      to_date($driver['start_date']),
       0,
-      $driver['trk_reg'],
-      $driver['dl_exp_date'],
-      $driver['med_exp_date'],
+      to_date($driver['trk_reg']),
+      to_date($driver['dl_exp_date']),
+      to_date($driver['med_exp_date']),
     ]);
   }
 }
