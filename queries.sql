@@ -20,6 +20,9 @@ SELECT id FROM customer WHERE name = 'Carmax';
 --name: get-location-by-cid
 SELECT * FROM location WHERE cid = ?;
 
+--name: get-vehicle-count
+SELECT count(*) as count FROM vehicle;
+
 --name: get-orders
 SELECT * FROM `order`;
 

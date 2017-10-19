@@ -5,16 +5,14 @@ function addOrGetLocation($dbcon, $queries, $cid,$name,$street_address,$city,$st
     $stmt->execute([$cid,$name,$street_address,$city,$state,substr($zip,0,5),$country,$address_type,$non_us_street_address,$lat,$lng,$date_created]);
   } catch (PDOEXCEPTION $e) {
     if (strpos($e, 'duplicate key value') === false) {
-      echo "addOrGetLocation:\n";
-      echo $e . "\n\n";
+      warn("addOrGetLocation exception: . $e");
     }
   }
   $stmt = $dbcon->prepare($queries['get-location-by-cid']);
   $stmt->execute([$cid]);
   $pgsqlLocation = $stmt->fetchAll();
   if (count($pgsqlLocation) < 1) {
-    echo "addOrGetLocation error:\n";
-    echo $cid . " not found.\n\n";
+    warn("Location '$cid' not found even though it should have just been added.");
   } else {
     return $pgsqlLocation[0]['id'];
   }
@@ -26,7 +24,16 @@ function doOrders($mysql, $pgsql, $queries) {
 
   $stmt = $mysql->query($queries['get-orders']);
   $orders = $stmt->fetchAll();
+  $stmt = $mysql->query($queries['get-vehicle-count']);
+  $firstVehicleCount = $stmt->fetchAll()[0]['count'];
   $missing_po = 1;
+  $firstOrderCount = count($orders);
+  echo blue($firstOrderCount) . " orders found.\n";
+  echo blue($firstVehicleCount) . " vehicles found.\n";
+  $orderCount = 0;
+  $vehicleCount = 0;
+  $vehicleSkip = 0;
+  $orderMissingVeh = 0;
   foreach ($orders as $order) {
     $mysql_order_id = $order['id'];
     $stmt = $mysql->prepare($queries['get-vehicles-by-order-id']);
@@ -39,13 +46,18 @@ function doOrders($mysql, $pgsql, $queries) {
     $stmt->execute([$order['delivery_location_id']]);
     $dropoff_location = $stmt->fetchAll()[0];
 
-    if (count($vehicles) < 1) continue; // Skip orders with no vehicles
+    if (count($vehicles) < 1) {
+      $orderMissingVeh++;
+      continue; // Skip orders with no vehicles
+    }
 
     $pickup_location_cid = $vehicles[0]['pickup_location_id'];
     $dropoff_location_cid = $vehicles[0]['delivery_location_id'];
 
     if (is_null($pickup_location_cid) or is_null($dropoff_location_cid)) {
-      echo "Order $mysql_order_id missing pickup or dropoff location id in vehicle '{$vehicles[0]['vin']}', skipping\n";
+      warn("Order $mysql_order_id missing pickup or dropoff location id in vehicle '{$vehicles[0]['vin']}', skipping");
+      warn(count($vehicles) . " vehicles being skipped due to not adding order $mysql_order_id.");
+      $vehicleSkip += count($vehicles);
       continue;
     }
 
@@ -102,8 +114,7 @@ function doOrders($mysql, $pgsql, $queries) {
         $order['date_deleted']
       ]);
     } catch (Exception $e) {
-      echo "Error inserting order $mysql_order_id, skipping.";
-      echo $e . "\n";
+      warn("Error inserting order $mysql_order_id: $e");
       continue;
     }
     $order_id = $pgsql->lastInsertId();
@@ -142,11 +153,18 @@ function doOrders($mysql, $pgsql, $queries) {
           $vehicle['date_created'],
           $vehicle['date_deleted']
         ]);
+        $vehicleCount++;
       } catch (Exception $e) {
-        echo $e . "\n";
+        warn("Error adding vehicle: $e");
         print_r($vehicle);
-        exit();
       }
     }
+    $orderCount++;
   }
+  echo blue($orderCount) . " orders copied.\n";
+  echo blue($vehicleCount) . " vehicles copied.\n";
+  echo blue($orderMissingVeh) . " orders with no vehicles.\n";
+  echo blue($firstOrderCount - $orderCount - $orderMissingVeh) . " orders not added because of errors.\n";
+  echo blue($vehicleSkip) . " vehicles skipped due to order being skipped.\n";
+  echo blue($firstVehicleCount - $vehicleCount - $vehicleSkip) . " other vehicles not copied.\n";
 }
