@@ -68,3 +68,29 @@ INSERT INTO "vehicle" (
   date_created,
   date_cancelled)
 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
+
+--name: get-drivers
+SELECT * FROM driver;
+
+--name: add-driver!
+INSERT INTO driver (
+username,
+name,
+password,
+mobile_number,
+alt_number,
+home_number,
+fax_number,
+email,
+type,
+is_cd,
+active,
+accepts_txt_messaging,
+notes,
+dont_use_reason,
+start_date,
+load_capacity,
+truck_registration_date,
+license_expiration_date,
+medical_expiration_date
+) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
