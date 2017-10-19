@@ -12,6 +12,7 @@ function connection($dbms, $host, $db, $user, $pass) {
 }
 
 function clearDestDB($pgsql) {
+  echo "Clearing out destination db...";
   $pgsql->query('DELETE FROM "order"    WHERE id > 0');
   $pgsql->query('DELETE FROM "vehicle"  WHERE id > 0');
   $pgsql->query('DELETE FROM "transfer" WHERE id > 0');
@@ -19,6 +20,14 @@ function clearDestDB($pgsql) {
   $pgsql->query('DELETE FROM "driver"   WHERE id > 0');
   $pgsql->query('DELETE FROM "location" WHERE id > 0');
   $pgsql->query('DELETE FROM "note"     WHERE id > 0');
+  $pgsql->query('ALTER SEQUENCE bol_id_seq RESTART WITH 1');
+  $pgsql->query('ALTER SEQUENCE vehicle_id_seq RESTART WITH 1');
+  $pgsql->query('ALTER SEQUENCE transfer_id_seq RESTART WITH 1');
+  $pgsql->query('ALTER SEQUENCE order_id_seq RESTART WITH 1');
+  $pgsql->query('ALTER SEQUENCE driver_id_seq RESTART WITH 1');
+  $pgsql->query('ALTER SEQUENCE location_id_seq RESTART WITH 1');
+  $pgsql->query('ALTER SEQUENCE note_id_seq RESTART WITH 1');
+  echo "Done.\n";
 }
 
 function parseQueries($fn) {
