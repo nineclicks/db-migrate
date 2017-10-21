@@ -153,6 +153,9 @@ function doOrders($mysql, $pgsql, $queries) {
           $vehicle['date_created'],
           $vehicle['date_deleted']
         ]);
+        $vehicle_id = $stmt->fetchAll()[0]['id'];
+        $stmt = $pgsql->prepare($queries['add-transfer!']);
+        $stmt->execute([$vehicle_id]);
         $vehicleCount++;
       } catch (Exception $e) {
         warn("Error adding vehicle: $e");

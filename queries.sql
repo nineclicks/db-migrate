@@ -32,6 +32,9 @@ SELECT * FROM vehicle WHERE order_id = ?;
 --name: get-location-by-id
 SELECT * FROM location where id = ? limit 1;
 
+--name: get-locations
+SELECT * FROM location;
+
 --name: add-order!
 INSERT INTO "order" (
   pickup_location_id,
@@ -70,7 +73,13 @@ INSERT INTO "vehicle" (
   promise_date,
   date_created,
   date_cancelled)
-VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+RETURNING id;
+
+--name: add-transfer!
+INSERT INTO "transfer" (
+  vehicle_id
+) VALUES (?);
 
 --name: get-drivers
 SELECT * FROM driver;
@@ -97,3 +106,29 @@ truck_registration_date,
 license_expiration_date,
 medical_expiration_date
 ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
+
+--name: get-bols
+SELECT * FROM bol;
+
+--name: add-bol!
+INSERT INTO bol (
+  driver_id,
+  shipment_id,
+  distance,
+  pickup_location_id,
+  dropoff_location_id,
+  pickup_date,
+  dropoff_date,
+  date_created,
+  date_deactivated
+) VALUES (
+  (SELECT id FROM driver WHERE username = ?),
+  ?,
+  ?,
+  (SELECT id FROM location WHERE name = ? AND street_address = ? AND city = ?),
+  (SELECT id FROM location WHERE name = ? AND street_address = ? AND city = ?),
+  ?,
+  ?,
+  ?,
+  ?
+);
