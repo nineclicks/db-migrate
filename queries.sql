@@ -144,8 +144,10 @@ WHERE vehicle_id = (SELECT id FROM vehicle WHERE move_id = ?);
 --name: add-bol-status!
 INSERT INTO bol_status (
   bol_id,
-  bol_status_type_id
+  bol_status_type_id,
+  date_created
 ) VALUES (
   ?,
-  (SELECT id FROM bol_status_type WHERE name = ?)
+  (SELECT id FROM bol_status_type WHERE name = ?),
+  ?
 );

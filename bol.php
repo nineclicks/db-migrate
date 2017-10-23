@@ -43,7 +43,7 @@ function doBols($mysql, $pgsql, $queries) {
       foreach ($bol_statuses as $bol_status => $bol_status_type) {
         if (array_key_exists($bol_status, $bol)) {
           $stmt = $pgsql->prepare($queries['add-bol-status!']);
-          $stmt->execute([$added_bol_id, $bol_status_type]);
+          $stmt->execute([$added_bol_id, $bol_status_type, $bol[$bol_status]]);
           $bolStatusCount++;
         }
       }
