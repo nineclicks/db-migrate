@@ -25,23 +25,13 @@ function doBols($mysql, $pgsql, $queries) {
     try {
       @$stmt->execute([
         $bol['driver_id'],
-        $bol['shipment_id'], 
-        null,
-        $bol['p_name'], 
-        $bol['p_street_address'], 
-        $bol['p_city'], 
-        $bol['d_name'], 
-        $bol['d_street_address'], 
-        $bol['d_city'], 
-        $bol['arrived_pickup_time'], 
-        $bol['delivered_time'], 
-        $bol['date_created'], 
-        $bol['date_deleted']
+        $bol['shipment_id'],
+        $bol['date_created']
       ]);
       $added_bol_id = $stmt->fetchAll()[0]['id'];
       global $bol_statuses;
       foreach ($bol_statuses as $bol_status => $bol_status_type) {
-        if (array_key_exists($bol_status, $bol)) {
+        if (array_key_exists($bol_status, $bol) && ! is_null($bol[$bol_status])) {
           $stmt = $pgsql->prepare($queries['add-bol-status!']);
           $stmt->execute([$added_bol_id, $bol_status_type, $bol[$bol_status]]);
           $bolStatusCount++;
@@ -57,6 +47,7 @@ function doBols($mysql, $pgsql, $queries) {
       }
     } catch (Exception $e) {
       warn("Problem with bol " . $bol['table_id'] . ", skipping.");
+      echo $e . "\n";
     }
     $bolCount++;
   }

@@ -105,7 +105,6 @@ function doOrders($mysql, $pgsql, $queries) {
         $order['price_per_unit'],
         $order['additional_charge'],
         $order['additional_charge_desc'],
-        (int)($order['important'] == "1"),
         (int)($order['cod'] == "1"),
         (int)($order['cod'] == "1"),
         'OTHER_TO_STORE',
@@ -141,7 +140,6 @@ function doOrders($mysql, $pgsql, $queries) {
           $vehicle['make'],
           $vehicle['model'],
           $vehicle['vin'],
-          $vehicle['type'],
           $vehicle['classification'],
           $vehicle['po_number'],
           $vehicle['transfer_id'],
@@ -155,7 +153,7 @@ function doOrders($mysql, $pgsql, $queries) {
         ]);
         $vehicle_id = $stmt->fetchAll()[0]['id'];
         $stmt = $pgsql->prepare($queries['add-transfer!']);
-        $stmt->execute([$vehicle_id]);
+        $stmt->execute([$vehicle_id, $pickup_location_id, $dropoff_location_id]);
         $vehicleCount++;
       } catch (Exception $e) {
         warn("Error adding vehicle: $e");

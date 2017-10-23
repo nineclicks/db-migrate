@@ -46,14 +46,13 @@ INSERT INTO "order" (
   price_per_unit,
   additional_charge,
   additional_charge_desc,
-  important,
   cod,
   cop,
   move_type,
   eta,
   date_created,
   date_deactivated)
-VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
 
 --name: add-vehicle!
 INSERT INTO "vehicle" (
@@ -62,10 +61,9 @@ INSERT INTO "vehicle" (
   make,
   model,
   vin,
-  type,
   classification,
   po_number,
-  move_id,
+  transfer_cid,
   curb_weight,
   doors,
   move_reason,
@@ -73,13 +71,15 @@ INSERT INTO "vehicle" (
   promise_date,
   date_created,
   date_cancelled)
-VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 RETURNING id;
 
 --name: add-transfer!
 INSERT INTO "transfer" (
-  vehicle_id
-) VALUES (?);
+  vehicle_id,
+  pickup_location_id,
+  dropoff_location_id
+) VALUES (?,?,?);
 
 --name: get-drivers
 SELECT * FROM driver;
@@ -114,21 +114,9 @@ SELECT * FROM bol;
 INSERT INTO bol (
   driver_id,
   shipment_id,
-  distance,
-  pickup_location_id,
-  dropoff_location_id,
-  pickup_date,
-  dropoff_date,
-  date_created,
-  date_deactivated
+  date_created
 ) VALUES (
   (SELECT id FROM driver WHERE username = ?),
-  ?,
-  ?,
-  (SELECT id FROM location WHERE name = ? AND street_address = ? AND city = ?),
-  (SELECT id FROM location WHERE name = ? AND street_address = ? AND city = ?),
-  ?,
-  ?,
   ?,
   ?
 ) RETURNING *;
@@ -139,7 +127,7 @@ SELECT v.* from vehicle v WHERE bol_id = ?;
 --name: update-transfer-bol-by-move-id!
 UPDATE transfer
 SET bol_id = ?
-WHERE vehicle_id = (SELECT id FROM vehicle WHERE move_id = ?);
+WHERE vehicle_id = (SELECT id FROM vehicle WHERE transfer_cid = ?);
 
 --name: add-bol-status!
 INSERT INTO bol_status (
