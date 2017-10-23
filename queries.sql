@@ -131,4 +131,21 @@ INSERT INTO bol (
   ?,
   ?,
   ?
+) RETURNING *;
+
+--name: get-vehicles-by-bol-id
+SELECT v.* from vehicle v WHERE bol_id = ?;
+
+--name: update-transfer-bol-by-move-id!
+UPDATE transfer
+SET bol_id = ?
+WHERE vehicle_id = (SELECT id FROM vehicle WHERE move_id = ?);
+
+--name: add-bol-status!
+INSERT INTO bol_status (
+  bol_id,
+  bol_status_type_id
+) VALUES (
+  ?,
+  (SELECT id FROM bol_status_type WHERE name = ?)
 );
