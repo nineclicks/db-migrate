@@ -20,13 +20,13 @@ function clearDestDB($pgsql) {
   $pgsql->query('DELETE FROM "driver"   WHERE id > 0');
   $pgsql->query('DELETE FROM "location" WHERE id > 0');
   $pgsql->query('DELETE FROM "note"     WHERE id > 0');
-  $pgsql->query('ALTER SEQUENCE bol_id_seq RESTART WITH 1');
-  $pgsql->query('ALTER SEQUENCE vehicle_id_seq RESTART WITH 1');
+  $pgsql->query('ALTER SEQUENCE bol_id_seq      RESTART WITH 1');
+  $pgsql->query('ALTER SEQUENCE vehicle_id_seq  RESTART WITH 1');
   $pgsql->query('ALTER SEQUENCE transfer_id_seq RESTART WITH 1');
-  $pgsql->query('ALTER SEQUENCE order_id_seq RESTART WITH 1');
-  $pgsql->query('ALTER SEQUENCE driver_id_seq RESTART WITH 1');
+  $pgsql->query('ALTER SEQUENCE order_id_seq    RESTART WITH 1');
+  $pgsql->query('ALTER SEQUENCE driver_id_seq   RESTART WITH 1');
   $pgsql->query('ALTER SEQUENCE location_id_seq RESTART WITH 1');
-  $pgsql->query('ALTER SEQUENCE note_id_seq RESTART WITH 1');
+  $pgsql->query('ALTER SEQUENCE note_id_seq     RESTART WITH 1');
   echo "Done.\n";
 }
 
