@@ -12,5 +12,4 @@ $ php migrate.php
 
 Built for php 5.6.
 
-![license]
-(https://i.imgur.com/vAgbOb3.png)
+![license](https://i.imgur.com/vAgbOb3.png)
