@@ -26,7 +26,13 @@ function doBols($mysql, $pgsql, $queries) {
       @$stmt->execute([
         $bol['driver_id'],
         $bol['shipment_id'],
-        $bol['date_created']
+        $bol['date_created'],
+        $bol['p_name'],
+        $bol['p_street_address'],
+        $bol['p_city'],
+        $bol['d_name'],
+        $bol['d_street_address'],
+        $bol['d_city']
       ]);
       $added_bol_id = $stmt->fetchAll()[0]['id'];
       global $bol_statuses;

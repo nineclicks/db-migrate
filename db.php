@@ -19,6 +19,7 @@ function clearDestDB($pgsql) {
   $pgsql->query('DELETE FROM "bol"      WHERE id > 0');
   $pgsql->query('DELETE FROM "driver"   WHERE id > 0');
   $pgsql->query('DELETE FROM "note"     WHERE id > 0');
+  $pgsql->query('DELETE FROM "invoice"  WHERE id > 0');
   $pgsql->query('ALTER SEQUENCE bol_id_seq      RESTART WITH 1');
   $pgsql->query('ALTER SEQUENCE vehicle_id_seq  RESTART WITH 1');
   $pgsql->query('ALTER SEQUENCE transfer_id_seq RESTART WITH 1');

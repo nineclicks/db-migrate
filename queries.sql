@@ -26,6 +26,17 @@ SELECT count(*) as count FROM vehicle;
 --name: get-orders
 SELECT * FROM `order`;
 
+--name: get-order-by-bol-id
+SELECT
+  o.*,
+  b.date_created as bol_date_created
+FROM "order" o
+INNER JOIN vehicle v  on o.id = v.order_id
+INNER JOIN transfer t on v.id = t.vehicle_id
+INNER JOIN bol b      on b.id = t.bol_id
+WHERE b.id = ?
+LIMIT 1;
+
 --name: get-vehicles-by-order-id
 SELECT * FROM vehicle WHERE order_id = ?;
 
@@ -34,6 +45,20 @@ SELECT * FROM location where id = ? limit 1;
 
 --name: get-locations
 SELECT * FROM location;
+
+--name: add-invoice!
+INSERT INTO invoice (
+  base_cost,
+  fuel_surcharge_percent,
+  fuel_surcharge_amt,
+  price_per_load,
+  price_per_unit,
+  additional_charge,
+  additional_charge_desc,
+  date_created
+) VALUES (
+  ?,?,?,?,?,?,?,?
+) RETURNING id;
 
 --name: add-order!
 INSERT INTO "order" (
@@ -114,11 +139,15 @@ SELECT * FROM bol;
 INSERT INTO bol (
   driver_id,
   shipment_id,
-  date_created
+  date_created,
+  pickup_location_id,
+  dropoff_location_id
 ) VALUES (
   (SELECT id FROM driver WHERE username = ?),
   ?,
-  ?
+  ?,
+  (SELECT id FROM location WHERE name = ? AND street_address = ? AND city = ?),
+  (SELECT id FROM location WHERE name = ? AND street_address = ? AND city = ?)
 ) RETURNING *;
 
 --name: get-vehicles-by-bol-id
@@ -139,3 +168,16 @@ INSERT INTO bol_status (
   (SELECT id FROM bol_status_type WHERE name = ?),
   ?
 );
+
+--name: update-vehicle-invoice-id!
+UPDATE vehicle
+SET invoice_id = ?
+WHERE id = ?;
+
+--name: get-vehicles-with-bols
+SELECT
+  b.id as bol_id,
+  v.id as vehicle_id
+FROM vehicle v
+INNER JOIN transfer t on t.vehicle_id = v.id
+INNER JOIN bol b      on t.bol_id     = b.id;
