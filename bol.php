@@ -24,8 +24,9 @@ function doBols($mysql, $pgsql, $queries) {
     $stmt = $pgsql->prepare($queries['add-bol!']);
     try {
       @$stmt->execute([
+        $bol['table_id'],
         $bol['driver_id'],
-        $bol['shipment_id'],
+        "CVAH_" . $bol['table_id'],
         $bol['date_created'],
         $bol['p_name'],
         $bol['p_street_address'],
@@ -57,6 +58,8 @@ function doBols($mysql, $pgsql, $queries) {
     }
     $bolCount++;
   }
+  $stmt = $pgsql->prepare($queries['update-bol-seq!']);
+  $stmt->execute();
   echo blue($bolCount) . " BOLs copied.\n";
   echo blue($transferCount) . " transfers assigned to BOLs.\n";
   echo blue($bolStatusCount) . " status updates added to BOLs.\n";

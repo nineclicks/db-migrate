@@ -137,12 +137,14 @@ SELECT * FROM bol;
 
 --name: add-bol!
 INSERT INTO bol (
+  id,
   driver_id,
   shipment_id,
   date_created,
   pickup_location_id,
   dropoff_location_id
 ) VALUES (
+  ?,
   (SELECT id FROM driver WHERE username = ?),
   ?,
   ?,
@@ -181,3 +183,6 @@ SELECT
 FROM vehicle v
 INNER JOIN transfer t on t.vehicle_id = v.id
 INNER JOIN bol b      on t.bol_id     = b.id;
+
+--name: update-bol-seq!
+SELECT setval('bol_id_seq', (SELECT MAX(id)+1 FROM bol));
